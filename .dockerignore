@@ -1,0 +1,15 @@
+__pycache__/
+data/
+output/
+.env
+.git/
+.codex/
+.reasonix/
+docs/
+*.pdf
+*.png
+*.md
+*.bat
+*.vbs
+*.cmd
+.lnk

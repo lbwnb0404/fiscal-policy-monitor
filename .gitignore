@@ -1,0 +1,27 @@
+# 环境变量（含 API Key）
+.env
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+
+# 输出文件
+output/
+data/raw/
+data/reports/
+
+# 临时文件
+*.log
+tmp/
+
+# 系统文件
+Thumbs.db
+.DS_Store
+
+# 项目特有
+.streamlit/config.toml
+
+# 本地依赖包（部署时通过 pip 安装）
+py_deps_new/
+py_deps/
