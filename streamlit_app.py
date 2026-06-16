@@ -469,17 +469,56 @@ with tab1:
     # --- 下载 ---
     st.markdown("---")
     st.subheader("📥 下载")
-    md_path = os.path.join(CHART_DIR, f"{week_tag}.md")
+
+    # 动态生成 Markdown 内容（不依赖预生成文件）
+    def _md_from_report(rpt):
+        w = rpt["report_id"]
+        lines = [
+            f"# 财政政策舆情周报 · {w}",
+            "",
+            f"> 生成时间：{rpt.get('generated_at','未知')[:10]}",
+            "",
+            "---",
+            "## 一、本周财政风向洞察",
+            "",
+            rpt.get("weekly_insight", ""),
+            "",
+            "---",
+            "## 二、情绪概览",
+            "",
+            f"- 平均情绪得分：**{rpt['sentiment_summary']['average_score']:.2f}**",
+            f"- 积极文章：{rpt['sentiment_summary']['positive_count']} 篇 | 中性：{rpt['sentiment_summary']['neutral_count']} 篇 | 谨慎：{rpt['sentiment_summary']['cautious_count']} 篇",
+            f"- 数据来源：{rpt['article_count']} 篇文章",
+            "",
+            "---",
+            "## 三、本周政策详情",
+            "",
+        ]
+        sentiment_icon = {"积极": "📈", "中性": "📊", "谨慎": "📉"}
+        for i, art in enumerate(rpt.get("articles", []), 1):
+            an = art.get("analysis", {})
+            icon = sentiment_icon.get(an.get("sentiment_label", ""), "📋")
+            lines.append(f"### {i}. {art['title']}")
+            lines.append("")
+            lines.append(f"- **来源**: {art['source']}（{art['source_type']}）")
+            lines.append(f"- **分类**: {an.get('category', '其他')} | **情绪**: {icon} {an.get('sentiment_label', '中性')} ({an.get('sentiment_score', 0):+.2f})")
+            lines.append(f"- **关键词**: {'、'.join(an.get('keywords', []))}")
+            if art.get("url"):
+                lines.append(f"- **原文**: {art['url']}")
+            lines.append("")
+            lines.append(f"> {(art.get('summary', '') or art.get('content', ''))[:150]}...")
+            lines.append("")
+        lines.append("---")
+        lines.append("*本报告由 AI 自动生成 · 数据来源可追溯 · 分析基于 DeepSeek API*")
+        return "\n".join(lines)
+
+    md_content = _md_from_report(report)
+    st.download_button("📄 下载 Markdown", md_content, file_name=f"{week_tag}.md")
+
     pdf_path = os.path.join(CHART_DIR, f"{week_tag}.pdf")
-    d1, d2, _ = st.columns(3)
-    with d1:
-        if os.path.exists(md_path):
-            with open(md_path, "r", encoding="utf-8") as f:
-                st.download_button("📄 下载 Markdown", f.read(), file_name=f"{week_tag}.md")
-    with d2:
-        if os.path.exists(pdf_path):
-            with open(pdf_path, "rb") as f:
-                st.download_button("📕 下载 PDF", f.read(), file_name=f"{week_tag}.pdf")
+    if os.path.exists(pdf_path):
+        with open(pdf_path, "rb") as f:
+            st.download_button("📕 下载 PDF", f.read(), file_name=f"{week_tag}.pdf")
 
     st.markdown(
         '<div class="footer-note">数据来源可追溯 · 分析基于 DeepSeek AI</div>',
